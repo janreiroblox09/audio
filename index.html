@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Destructing Cassette</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');
+        
+        body {
+            font-family: 'VT323', monospace;
+            background-color: #222;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ddd;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            color: #ff5252;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+        }
+        
+        .warning-box {
+            background-color: #3f3f3f;
+            color: #ff5252;
+            border-radius: 0;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            font-weight: bold;
+            border: 2px solid #ff5252;
+            border-style: dashed;
+            text-align: center;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+        
+        .cassette {
+            width: 100%;
+            height: 240px;
+            background-color: #2a2a2a;
+            border-radius: 10px;
+            position: relative;
+            margin: 2rem 0;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            border: 3px solid #111;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .cassette-label {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 50px;
+            background-color: #fff;
+            border: 2px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            z-index: 1;
+        }
+        
+        .cassette-reels {
+            position: absolute;
+            top: 90px;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        
+        .reel {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #333;
+            border: 5px solid #111;
+            position: relative;
+            transition: transform 0.5s linear;
+        }
+        
+        .reel::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #555;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .reel-left::before, .reel-right::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border-top: 4px solid #555;
+            top: 0;
+            left: 0;
+        }
+        
+        .cassette-window {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 30px;
+            background-color: rgba(0,0,0,0.7);
+            border: 2px solid #111;
+            overflow: hidden;
+        }
+        
+        .tape {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 2px;
+            width: 100%;
+            background-color: #222;
+            transform: translateY(-50%);
+        }
+        
+        .control-panel {
+            width: 100%;
+            height: 80px;
+            background-color: #444;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+            border: 2px solid #333;
+        }
+        
+        .control-button {
+            width: 60px;
+            height: 50px;
+            background-color: #222;
+            border: none;
+            border-radius: 8px;
+            margin: 0 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #111;
+        }
+        
+        .control-button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #111;
+        }
+        
+        .play-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 55%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-left: 20px solid #3d9970;
+        }
+        
+        .stop-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background-color: #ff4136;
+        }
+        
+        .timer {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            color: #ff5252;
+            margin-top: 1rem;
+        }
+        
+        .destruction-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0);
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .smoke {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(100,100,100,0.8);
+            border-radius: 50%;
+            animation: rise 2s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .spark {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: #ff5252;
+            border-radius: 50%;
+            animation: spark 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .crack {
+            position: absolute;
+            width: 3px;
+            height: 30px;
+            background-color: #111;
+            transform-origin: center top;
+            animation: grow 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        .status-message {
+            margin-top: 2rem;
+            color: #aaa;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+        }
+        
+        @keyframes rise {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100px) scale(3);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes spark {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes grow {
+            0% {
+                height: 0;
+                opacity: 0;
+            }
+            100% {
+                height: var(--height);
+                opacity: 1;
+            }
+        }
+        
+        .cassette-melting {
+            animation: melt 4s ease-in forwards;
+        }
+
+        .destroyed-cassette {
+            opacity: 0.5;
+            filter: brightness(0.2);
+            transform: scale(0.9) translateY(20px);
+            border-radius: 10px 10px 50px 50px;
+        }
+        
+        @keyframes melt {
+            0% {
+                transform: scale(1) rotate(0);
+                filter: brightness(1);
+            }
+            30% {
+                transform: scale(1.05) rotate(2deg);
+                filter: brightness(1.2);
+            }
+            60% {
+                transform: scale(0.95) rotate(-2deg) translateY(5px);
+                filter: brightness(0.8);
+                border-radius: 10px 10px 20px 20px;
+            }
+            100% {
+                transform: scale(0.9) rotate(0) translateY(20px);
+                filter: brightness(0.2);
+                border-radius: 10px 10px 50px 50px;
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Self-Destructing Cassette</h1>
+        
+        <div class="warning-box">
+            ⚠️ WARNING: One-time playback only! ⚠️
+            This tape will self-destruct after playing.
+        </div>
+        
+        <div id="player-container">
+            <div class="cassette" id="cassette">
+                <div class="destruction-effect" id="destruction-effect"></div>
+                <div class="cassette-label" id="cassette-label">Secret message</div>
+                <div class="cassette-reels">
+                    <div class="reel reel-left" id="reel-left"></div>
+                    <div class="reel reel-right" id="reel-right"></div>
+                </div>
+                <div class="cassette-window">
+                    <div class="tape"></div>
+                </div>
+            </div>
+            
+            <div class="timer" id="timer">00:00</div>
+            
+            <div class="control-panel">
+                <button id="play-btn" class="control-button play-button"></button>
+            </div>
+        </div>
+        
+        <div id="status-message" class="status-message"></div>
+    </div>
+
+    <script>
+        // ADMIN CONFIGURATION - Set this to false to disable self-destruction
+        const enableDestruction = true;
+
+        // DOM Elements
+        const playerContainer = document.getElementById('player-container');
+        const playBtn = document.getElementById('play-btn');
+        const statusMessage = document.getElementById('status-message');
+        const timerDisplay = document.getElementById('timer');
+        const cassette = document.getElementById('cassette');
+        const reelLeft = document.getElementById('reel-left');
+        const reelRight = document.getElementById('reel-right');
+        const destructionEffect = document.getElementById('destruction-effect');
+        const cassetteLabel = document.getElementById('cassette-label');
+        
+        // Audio element
+        const audio = new Audio();
+        
+        // Updated audio URL here
+        const audioData = "https://raw.githubusercontent.com/janreiroblox09/audio/main/audio/voiceMes.mp3";
+        
+        // Generate a unique ID for this audio file to track if it's been played
+        const audioFileId = audioData.split('/').pop();
+        const storageKey = 'cassetteDestroyed_' + audioFileId;
+        
+        // Check local storage to see if THIS SPECIFIC audio file has been played before
+        let hasPlayed = enableDestruction ? localStorage.getItem(storageKey) === 'true' : false;
+        let timerInterval = null;
+        let reelAnimation = null;
+        
+        // Reset function - can be called from console by admin
+        function resetCassette() {
+            localStorage.removeItem(storageKey);
+            location.reload();
+        }
+        
+        // Initialize cassette state based on whether it has been played
+        function initializeCassette() {
+            if (hasPlayed) {
+                // Show cassette as already destroyed
+                cassette.classList.add('destroyed-cassette');
+                cassetteLabel.textContent = "DESTROYED";
+                cassetteLabel.style.color = "#ff0000";
+                cassetteLabel.style.backgroundColor = "#333";
+                cassetteLabel.style.border = "2px dashed #ff0000";
+                playBtn.disabled = true;
+                playBtn.style.backgroundColor = '#333';
+                statusMessage.textContent = 'This tape has been destroyed';
+            } else {
+                // Show cassette ready to play
+                statusMessage.textContent = 'Tape loaded and ready to play';
+                audio.src = audioData;
+            }
+        }
+        
+        // Format time from seconds to MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+        
+        // Update timer display
+        function updateTimer() {
+            timerDisplay.textContent = formatTime(audio.currentTime);
+        }
+        
+        // Animate cassette reels
+        function animateReels() {
+            let rotation = 0;
+            
+            reelAnimation = setInterval(() => {
+                rotation += 2;
+                reelLeft.style.transform = `rotate(${rotation}deg)`;
+                reelRight.style.transform = `rotate(${-rotation}deg)`;
+            }, 50);
+        }
+        
+        // Stop reel animation
+        function stopReelAnimation() {
+            clearInterval(reelAnimation);
+        }
+        
+        // Create destruction effects
+        function destroyCassette() {
+            // Add melting animation to cassette
+            cassette.classList.add('cassette-melting');
+            
+            // Create smoke effects
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const smoke = document.createElement('div');
+                    smoke.className = 'smoke';
+                    smoke.style.left = `${Math.random() * 100}%`;
+                    smoke.style.top = `${Math.random() * 100}%`;
+                    destructionEffect.appendChild(smoke);
+                }, i * 200);
+            }
+            
+            // Create spark effects
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const spark = document.createElement('div');
+                    spark.className = 'spark';
+                    spark.style.left = `${Math.random() * 100}%`;
+                    spark.style.top = `${Math.random() * 100}%`;
+                    spark.style.setProperty('--tx', `${(Math.random() - 0.5) * 50}px`);
+                    spark.style.setProperty('--ty', `${(Math.random() - 0.5) * 50}px`);
+                    destructionEffect.appendChild(spark);
+                }, 1000 + i * 100);
+            }
+            
+            // Create crack effects
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const crack = document.createElement('div');
+                    crack.className = 'crack';
+                    crack.style.left = `${Math.random() * 100}%`;
+                    crack.style.top = `${Math.random() * 100}%`;
+                    crack.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    crack.style.setProperty('--height', `${30 + Math.random() * 50}px`);
+                    destructionEffect.appendChild(crack);
+                }, 1500 + i * 300);
+            }
+            
+            // Change cassette label text
+            setTimeout(() => {
+                cassetteLabel.textContent = "DESTROYED";
+                cassetteLabel.style.color = "#ff0000";
+                cassetteLabel.style.backgroundColor = "#333";
+                cassetteLabel.style.border = "2px dashed #ff0000";
+            }, 2000);
+        }
+        
+        // Play button handler
+        playBtn.addEventListener('click', () => {
+            if (hasPlayed) {
+                statusMessage.textContent = 'This tape has been destroyed';
+                return;
+            }
+            
+            if (audio.paused) {
+                audio.play();
+                playBtn.disabled = true;
+                playBtn.style.backgroundColor = '#333';
+                
+                // Start timer updates
+                timerInterval = setInterval(updateTimer, 1000);
+                
+                // Start reel animation
+                animateReels();
+                
+                statusMessage.textContent = 'Playing your one-time message...';
+            }
+        });
+        
+        // Audio ended handler
+        audio.addEventListener('ended', () => {
+            clearInterval(timerInterval);
+            stopReelAnimation();
+            
+            if (enableDestruction) {
+                hasPlayed = true;
+                localStorage.setItem(storageKey, 'true');
+                playBtn.disabled = true;
+                
+                // Start destruction sequence
+                destroyCassette();
+                
+                // Clear the audio source
+                audio.src = '';
+                
+                statusMessage.textContent = 'Tape self-destructed!';
+            } else {
+                // If destruction is disabled, simply reset the player
+                playBtn.disabled = false;
+                playBtn.style.backgroundColor = '#222';
+                statusMessage.textContent = 'Playback complete - ready to play again';
+            }
+        });
+
+        // Set initial timer display
+        audio.addEventListener('loadedmetadata', () => {
+            timerDisplay.textContent = formatTime(0);
+        });
+
+        // Initialize the cassette on page load
+        initializeCassette();
+
+        // Console message for admins
+        console.log("Admin functions available: resetCassette() - Reset the cassette state");
+        console.log(`Self-destruction is currently ${enableDestruction ? 'ENABLED' : 'DISABLED'}`);
+    </script>
+</body>
+</html>
